@@ -33,15 +33,6 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderDetail(user, id));
     }
 
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<Order> updateOrderStatus(
-            @PathVariable Long id,
-            @RequestBody UpdateOrderStatusRequest request
-            ) {
-        Order updateOrder = orderService.updateOrderStatus(id, request.getStatus());
-        return ResponseEntity.ok(updateOrder);
-    }
-
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Order> cancelOrder(
             @AuthenticationPrincipal User user,
