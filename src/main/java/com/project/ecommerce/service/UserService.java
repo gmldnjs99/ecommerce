@@ -2,12 +2,15 @@ package com.project.ecommerce.service;
 
 import com.project.ecommerce.dto.UserLoginRequest;
 import com.project.ecommerce.dto.UserRegisterRequest;
+import com.project.ecommerce.entity.Role;
 import com.project.ecommerce.entity.User;
 import com.project.ecommerce.repository.UserRepository;
 import com.project.ecommerce.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +29,7 @@ public class UserService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .role("ROLE_USER")
+                .role(Role.ROLE_USER)
                 .build();
 
         userRepository.save(user);
@@ -40,6 +43,9 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        return jwtUtil.generateToken(user.getEmail());
+        // Role enum을 문자열로 변환 후 리스트로 감싸기
+        List<String> roles = List.of(user.getRole().name());
+
+        return jwtUtil.generateToken(user.getEmail(), roles);
     }
 }
