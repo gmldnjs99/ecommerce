@@ -25,4 +25,20 @@ public class ProductService {
         return productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
     }
+
+    // 관리자용: 상품 수정
+    public Product update(Long id, Product updateData) {
+        Product product = findById(id);
+        product.setName(updateData.getName());
+        product.setDescription(updateData.getDescription());
+        product.setPrice(updateData.getPrice());
+        product.setStock(updateData.getStock());
+        return productRepository.save(product);
+    }
+
+    // 관리자용: 상품 삭제
+    public void delete(Long id) {
+        Product product = findById(id);
+        productRepository.delete(product);
+    }
 }

@@ -33,20 +33,23 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderDetail(user, id));
     }
 
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<Order> updateOrderStatus(
-            @PathVariable Long id,
-            @RequestBody UpdateOrderStatusRequest request
-            ) {
-        Order updateOrder = orderService.updateOrderStatus(id, request.getStatus());
-        return ResponseEntity.ok(updateOrder);
-    }
-
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Order> cancelOrder(
             @AuthenticationPrincipal User user,
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(orderService.cancelOrder(user, id));
+    }
+
+    // 배송 시작
+    @PatchMapping("/{id}/ship")
+    public ResponseEntity<Order> startShipping(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.startShipping(id));
+    }
+
+    // 배송 완료
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Order> completeShipping(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.completeShipping(id));
     }
 }
