@@ -40,4 +40,16 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(orderService.cancelOrder(user, id));
     }
+
+    // 배송 시작
+    @PatchMapping("/{id}/ship")
+    public ResponseEntity<Order> startShipping(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.startShipping(id));
+    }
+
+    // 배송 완료
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Order> completeShipping(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.completeShipping(id));
+    }
 }
