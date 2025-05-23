@@ -86,4 +86,30 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELED);
         return orderRepository.save(order);
     }
+
+    // 배송 시작 처리
+    public Order startShipping(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new IllegalStateException("결제 완료된 주문만 배송 시작 가능");
+        }
+
+        order.setStatus(OrderStatus.SHIPPING);
+        return orderRepository.save(order);
+    }
+
+    // 배송 완료 처리
+    public Order completeShipping(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
+
+        if (order.getStatus() != OrderStatus.SHIPPING) {
+            throw new IllegalStateException("배송 중인 주문만 배송 완료 처리 가능");
+        }
+
+        order.setStatus(OrderStatus.COMPLETED);
+        return orderRepository.save(order);
+    }
 }
