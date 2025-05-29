@@ -7,7 +7,7 @@
 | /api/auth/signup  | POST       | {"username":"user1","password":"pass123","email":"user1@example.com"} | {"id":1,"username":"user1","email":"user1@example.com"} | 201, 400           | 없음                     |
 | /api/auth/login   | POST       | {"username":"user1","password":"pass123"}     | {"accessToken":"ey...","refreshToken":"ey..."}         | 200, 401           | 없음                     |
 | /api/users/me     | GET        | 없음                                           | {"id":1,"username":"user1","email":"user1@example.com"} | 200, 401           | JWT 인증 필요 (ROLE_USER) |
-| /api/auth/refresh | POST       | {"refreshToken":"ey..."}                      | {"accessToken":"ey...","refreshToken":"ey..."}         | 200, 401           | JWT 인증 필요 (ROLE_USER) |
+
 
 ## 상품 관리
 
@@ -19,7 +19,7 @@
 | /api/products/{id}    | PUT        | `{"name":"New Book","price":12000}`                   | `{"id":1,"name":"New Book","description":"A book","price":12000,"categoryId":1}` | 200, 400, 404, 401, 403 | JWT 인증 필요 (ROLE_ADMIN) |
 | /api/products/{id}    | DELETE     | 없음                                                | 없음                                                   | 204, 404, 401, 403      | JWT 인증 필요 (ROLE_ADMIN) |
 
-## 카테고리
+## 카테고리(구현예정)
 
 | 엔드포인트               | HTTP 메서드 | 요청 예시               | 응답 예시                        | 상태 코드               | 인증/권한                |
 | ----------------------- | ---------- | ---------------------- | ------------------------------ | --------------------- | ----------------------- |
