@@ -362,63 +362,40 @@
 
 ---
 
-## 1. 결제 요청 (Make Payment)
 
-| 항목                       | 내용                                 |
-| ------------------------ | ---------------------------------- |
-| **Endpoint**             | `POST /`                           |
-| **설명**                   | 클라이언트로부터 받은 결제 정보로 결제를 처리하고 결과를 반환 |
-| **요청 헤더**                | `Content-Type: application/json`   |
-| **요청 바디**                | \`\`\`json                         |
-| {                        |                                    |
-| "orderId": 123,          |                                    |
-| "amount": 3000.00,       |                                    |
-| "paymentMethod": "CARD", |                                    |
-| "paymentDetails": {      |                                    |
+### 1. 결제 요청 (Make Payment)
 
-```
-"cardNumber": "4111111111111111",
-"expiryMonth": "12",
-"expiryYear": "2027",
-"cvc": "123"
-```
-
-}
-}
+| 항목                               | 내용                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| **Endpoint**                     | `POST /api/payments`                                                            |
+| **설명**                           | 클라이언트로부터 받은 결제 정보로 결제를 처리하고 결과를 반환                                              |
+| **요청 헤더**                        | `Content-Type: application/json`<br>필요 시<br>`Authorization: Bearer {JWT_TOKEN}` |
+| **요청 바디**                        | \`\`\`json                                                                      |
+| {                                |                                                                                 |
+| "orderId": 123,                  |                                                                                 |
+| "paymentMethod": "CARD",         |                                                                                 |
+| "cardNumber": "4111111111111111" |                                                                                 |
+| }                                |                                                                                 |
 
 ````
 - `orderId` (Long, 필수): 결제할 주문의 고유번호  
-- `amount` (Double, 필수): 결제 금액 (주문 총액과 일치해야 함)  
-- `paymentMethod` (String, 필수): 결제 수단 코드 (`CARD`, `VIRTUAL_ACCOUNT`, `PAYPAL` 등)  
-- `paymentDetails` (Object, 필수): 결제 수단별 상세 정보  
-  - **신용카드 예시**  
-    - `cardNumber` (String, 필수)  
-    - `expiryMonth` (String, `MM` 형식, 필수)  
-    - `expiryYear` (String, `YYYY` 형식, 필수)  
-    - `cvc` (String, 필수)  
-
-> **Note:** 다른 결제수단을 지원할 경우 `paymentDetails` 내 필드를 변경하거나 확장하세요.
+- `paymentMethod` (String, 필수): 결제 수단 코드 (`CARD`, `BANK_TRANSFER` 등)  
+- `cardNumber` (String, **신용카드 결제 시 필수**, 그 외 결제 수단 시 `null` 또는 빈 문자열 허용)  
 
 | **응답**        | - **200 OK** (결제 성공)<br>  ```json
 {
-  "transactionId": "txn_abc123",
+  "paymentId": "pay_abc123",
   "status": "SUCCESS",
-  "orderId": 123,
-  "amount": 3000.00,
-  "paidAt": "2025-05-29T10:45:00Z",
   "message": "결제가 정상 처리되었습니다."
 }
 ````
 
-* **201 Created** 로도 구현 가능 <br>- **400 Bad Request** (결제 실패)<br>  \`\`\`json
-  {
-  "transactionId": null,
-  "status": "FAILED",
-  "orderId": 123,
-  "amount": 3000.00,
-  "paidAt": null,
-  "message": "카드 정보가 유효하지 않습니다."
-  }
+<br>- **400 Bad Request** (결제 실패)<br>  \`\`\`json
+{
+"paymentId": null,
+"status": "FAILURE",
+"message": "카드 정보가 유효하지 않습니다."
+}
 
 ```
 
@@ -430,38 +407,26 @@
 
 #### PaymentRequest
 
-| 필드              | 타입     | 제약조건        | 설명                                                 |
-|-----------------|--------|--------------|----------------------------------------------------|
-| `orderId`       | Long   | `@NotNull`   | 결제할 주문의 고유번호                                      |
-| `amount`        | Double | `@NotNull`   | 결제 금액 (주문 총액과 일치해야 함)                            |
-| `paymentMethod` | String | `@NotBlank`  | 결제 수단 코드 (`CARD`, `VIRTUAL_ACCOUNT`, `PAYPAL` 등) |
-| `paymentDetails`| Object | `@NotNull`   | 결제 수단별 상세 정보 (아래 `PaymentDetails` 참조)          |
-
-##### PaymentDetails (신용카드 예시)
-
-| 필드           | 타입   | 제약조건      | 설명                     |
-|--------------|------|------------|------------------------|
-| `cardNumber` | String | `@NotBlank` | 카드 번호 (16자리 등)        |
-| `expiryMonth`| String | `@NotBlank` | 유효기간 월 (`MM`)          |
-| `expiryYear` | String | `@NotBlank` | 유효기간 연도 (`YYYY`)       |
-| `cvc`        | String | `@NotBlank` | 카드 CVC 코드              |
+| 필드           | 타입    | 제약조건     | 설명                                       |
+|--------------|-------|------------|------------------------------------------|
+| `orderId`    | Long  | `@NotNull` | 결제할 주문의 고유번호                            |
+| `paymentMethod` | String | `@NotBlank` | 결제 수단 코드 (`CARD`, `BANK_TRANSFER` 등) |
+| `cardNumber` | String | —          | 신용카드 결제 시 카드 번호 (그 외 결제수단 시 무시)    |
 
 ---
 
 #### PaymentResponse
 
-| 필드             | 타입     | 설명                             |
-|----------------|--------|--------------------------------|
-| `transactionId`| String | 결제 고유 트랜잭션 ID (실패 시 `null`)      |
-| `status`       | String | 처리 결과 (`SUCCESS`, `FAILED`) |
-| `orderId`      | Long   | 결제 대상 주문 ID                  |
-| `amount`       | Double | 실제 처리된 결제 금액               |
-| `paidAt`       | String | 결제 완료 시각 (ISO 8601, 실패 시 `null`) |
-| `message`      | String | 결과에 대한 부가 설명               |
+| 필드           | 타입   | 설명                                 |
+|--------------|------|------------------------------------|
+| `paymentId`  | String | 결제 고유 ID (실패 시 `null`)           |
+| `status`     | String | 처리 결과 (`SUCCESS`, `FAILURE`) |
+| `message`    | String | 결과에 대한 부가 설명                  |
 
 ---
 
 > **참고**  
-> - 실제 운영 환경에서는 카드번호·CVC와 같은 민감정보는 프론트엔드에서 직접 PG사 SDK/토큰화 서비스를 이용하여 토큰만 서버로 전달하도록 설계필요.  
+> - 신용카드 결제 시 민감정보(카드번호)는 가급적 프론트엔드에서 토큰화하여 전달하고, 서버는 토큰을 처리하도록 구현필요요.  
+
 ```
 
