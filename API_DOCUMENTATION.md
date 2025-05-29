@@ -362,44 +362,59 @@
 
 ---
 
-
 ### 1. 결제 요청 (Make Payment)
 
-| 항목                               | 내용                                                                              |
-| -------------------------------- | ------------------------------------------------------------------------------- |
-| **Endpoint**                     | `POST /api/payments`                                                            |
-| **설명**                           | 클라이언트로부터 받은 결제 정보로 결제를 처리하고 결과를 반환                                              |
-| **요청 헤더**                        | `Content-Type: application/json`<br>필요 시<br>`Authorization: Bearer {JWT_TOKEN}` |
-| **요청 바디**                        | \`\`\`json                                                                      |
-| {                                |                                                                                 |
-| "orderId": 123,                  |                                                                                 |
-| "paymentMethod": "CARD",         |                                                                                 |
-| "cardNumber": "4111111111111111" |                                                                                 |
-| }                                |                                                                                 |
+| 항목           | 내용                                                                              |
+| ------------ | ------------------------------------------------------------------------------- |
+| **Endpoint** | `POST /api/payments`                                                            |
+| **설명**       | 클라이언트로부터 받은 결제 정보로 결제를 처리하고 결과를 반환                                              |
+| **요청 헤더**    | `Content-Type: application/json`<br>필요 시<br>`Authorization: Bearer {JWT_TOKEN}` |
+| **요청 바디**    |                                                                                 |
 
-````
-- `orderId` (Long, 필수): 결제할 주문의 고유번호  
-- `paymentMethod` (String, 필수): 결제 수단 코드 (`CARD`, `BANK_TRANSFER` 등)  
-- `cardNumber` (String, **신용카드 결제 시 필수**, 그 외 결제 수단 시 `null` 또는 빈 문자열 허용)  
+<details>
+<summary>요청 바디 예시</summary>
 
-| **응답**        | - **200 OK** (결제 성공)<br>  ```json
+```json
+{
+  "orderId": 123,
+  "paymentMethod": "CARD",
+  "cardNumber": "4111111111111111"
+}
+```
+
+</details>
+
+* `orderId` (Long, 필수): 결제할 주문의 고유번호
+* `paymentMethod` (String, 필수): 결제 수단 코드 (`CARD`, `BANK_TRANSFER` 등)
+* `cardNumber` (String, **신용카드 결제 시 필수**, 그 외 결제 수단 시 `null` 또는 빈 문자열 허용)
+
+---
+
+| **응답**          | 내용 |
+| --------------- | -- |
+| **200 OK** (성공) |    |
+
+```json
 {
   "paymentId": "pay_abc123",
   "status": "SUCCESS",
   "message": "결제가 정상 처리되었습니다."
 }
-````
-
-<br>- **400 Bad Request** (결제 실패)<br>  \`\`\`json
-{
-"paymentId": null,
-"status": "FAILURE",
-"message": "카드 정보가 유효하지 않습니다."
-}
-
 ```
 
-| **인증/권한**   | 필요 시 JWT 토큰 (`Authorization: Bearer {JWT_TOKEN}`) 추가 후 인증된 사용자만 결제하도록 구현 가능                       |
+\| **400 Bad Request** (실패) |                                                                                  |
+
+```json
+{
+  "paymentId": null,
+  "status": "FAILURE",
+  "message": "카드 정보가 유효하지 않습니다."
+}
+```
+
+---
+
+\| **인증/권한** | 필요 시 JWT 토큰 (`Authorization: Bearer {JWT_TOKEN}`)을 통해 인증된 사용자만 결제 가능하도록 구현 가능 |
 
 ---
 
@@ -407,26 +422,27 @@
 
 #### PaymentRequest
 
-| 필드           | 타입    | 제약조건     | 설명                                       |
-|--------------|-------|------------|------------------------------------------|
-| `orderId`    | Long  | `@NotNull` | 결제할 주문의 고유번호                            |
+| 필드              | 타입     | 제약조건        | 설명                                   |
+| --------------- | ------ | ----------- | ------------------------------------ |
+| `orderId`       | Long   | `@NotNull`  | 결제할 주문의 고유번호                         |
 | `paymentMethod` | String | `@NotBlank` | 결제 수단 코드 (`CARD`, `BANK_TRANSFER` 등) |
-| `cardNumber` | String | —          | 신용카드 결제 시 카드 번호 (그 외 결제수단 시 무시)    |
+| `cardNumber`    | String | —           | 신용카드 결제 시 카드 번호 (그 외 결제수단 시 무시)      |
 
 ---
 
 #### PaymentResponse
 
-| 필드           | 타입   | 설명                                 |
-|--------------|------|------------------------------------|
-| `paymentId`  | String | 결제 고유 ID (실패 시 `null`)           |
-| `status`     | String | 처리 결과 (`SUCCESS`, `FAILURE`) |
-| `message`    | String | 결과에 대한 부가 설명                  |
+| 필드          | 타입     | 설명                           |
+| ----------- | ------ | ---------------------------- |
+| `paymentId` | String | 결제 고유 ID (실패 시 `null`)       |
+| `status`    | String | 처리 결과 (`SUCCESS`, `FAILURE`) |
+| `message`   | String | 결과에 대한 부가 설명                 |
 
 ---
 
-> **참고**  
-> - 신용카드 결제 시 민감정보(카드번호)는 가급적 프론트엔드에서 토큰화하여 전달하고, 서버는 토큰을 처리하도록 구현필요요.  
+> **참고**
+>
+> * 신용카드 결제 시 민감정보(카드번호)는 **프론트엔드에서 토큰화하여 서버에 전달**하고, 서버는 해당 토큰을 기반으로 결제를 처리하도록 구현하는 것이 안전합니다.
 
-```
+---
 
