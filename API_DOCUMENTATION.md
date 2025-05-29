@@ -1,161 +1,48 @@
-# 📚 E-commerce API 명세서
+# 이커머스 프로젝트 API 명세서
 
-## ✅ 인증 (Auth)
+## 사용자 인증 (JWT)
 
-### POST /api/users/register
+| 엔드포인트         | HTTP 메서드 | 요청 예시                                      | 응답 예시                                               | 상태 코드           | 인증/권한                     |
+| ----------------- | ---------- | --------------------------------------------- | ------------------------------------------------------ | ------------------ | ------------------------ |
+| /api/auth/signup  | POST       | {"username":"user1","password":"pass123","email":"user1@example.com"} | {"id":1,"username":"user1","email":"user1@example.com"} | 201, 400           | 없음                     |
+| /api/auth/login   | POST       | {"username":"user1","password":"pass123"}     | {"accessToken":"ey...","refreshToken":"ey..."}         | 200, 401           | 없음                     |
+| /api/users/me     | GET        | 없음                                           | {"id":1,"username":"user1","email":"user1@example.com"} | 200, 401           | JWT 인증 필요 (ROLE_USER) |
+| /api/auth/refresh | POST       | {"refreshToken":"ey..."}                      | {"accessToken":"ey...","refreshToken":"ey..."}         | 200, 401           | JWT 인증 필요 (ROLE_USER) |
 
-* 회원가입
-* 요청
+## 상품 관리
 
-```json
-{
-  "email": "user@example.com",
-  "password": "1234",
-  "name": "홍길동"
-}
-```
+| 엔드포인트             | HTTP 메서드 | 요청 예시                                           | 응답 예시                                               | 상태 코드                 | 인증/권한                |
+| --------------------- | ---------- | -------------------------------------------------- | ------------------------------------------------------ | ----------------------- | ----------------------- |
+| /api/products         | GET        | 없음                                                | `[{"id":1,"name":"Book","price":10000},{"id":2,"name":"Phone","price":20000}]` | 200                     | 없음                    |
+| /api/products/{id}    | GET        | 없음                                                | `{"id":1,"name":"Book","price":10000,"description":"A book","categoryId":1}`   | 200, 404                | 없음                    |
+| /api/products         | POST       | `{"name":"Book","description":"A book","price":10000,"categoryId":1}`        | `{"id":3,"name":"Book","description":"A book","price":10000,"categoryId":1}`  | 201, 400, 401, 403      | JWT 인증 필요 (ROLE_ADMIN) |
+| /api/products/{id}    | PUT        | `{"name":"New Book","price":12000}`                   | `{"id":1,"name":"New Book","description":"A book","price":12000,"categoryId":1}` | 200, 400, 404, 401, 403 | JWT 인증 필요 (ROLE_ADMIN) |
+| /api/products/{id}    | DELETE     | 없음                                                | 없음                                                   | 204, 404, 401, 403      | JWT 인증 필요 (ROLE_ADMIN) |
 
-### POST /api/users/login
+## 카테고리
 
-* 로그인 (JWT 반환)
-* 요청
+| 엔드포인트               | HTTP 메서드 | 요청 예시               | 응답 예시                        | 상태 코드               | 인증/권한                |
+| ----------------------- | ---------- | ---------------------- | ------------------------------ | --------------------- | ----------------------- |
+| /api/categories         | GET        | 없음                   | `[{"id":1,"name":"Books"},{"id":2,"name":"Electronics"}]` | 200                   | 없음                    |
+| /api/categories/{id}    | GET        | 없음                   | `{"id":1,"name":"Books"}`          | 200, 404              | 없음                    |
+| /api/categories         | POST       | `{"name":"New Category"}` | `{"id":3,"name":"New Category"}`   | 201, 400, 401, 403    | JWT 인증 필요 (ROLE_ADMIN) |
+| /api/categories/{id}    | PUT        | `{"name":"Updated Name"}` | `{"id":1,"name":"Updated Name"}`   | 200, 400, 404, 401, 403 | JWT 인증 필요 (ROLE_ADMIN) |
+| /api/categories/{id}    | DELETE     | 없음                   | 없음                             | 204, 404, 401, 403    | JWT 인증 필요 (ROLE_ADMIN) |
 
-```json
-{
-  "email": "user@example.com",
-  "password": "1234"
-}
-```
+## 장바구니
 
-* 응답
+| 엔드포인트       | HTTP 메서드 | 요청 예시                            | 응답 예시                                                              | 상태 코드           | 인증/권한                 |
+| --------------- | ---------- | ----------------------------------- | --------------------------------------------------------------------- | ------------------ | ---------------------- |
+| /api/cart        | GET        | 없음                                 | `{"items":[{"productId":1,"name":"Book","quantity":2,"price":10000}],"totalPrice":20000}` | 200, 401          | JWT 인증 필요 (ROLE_USER) |
+| /api/cart        | POST       | `{"productId":1,"quantity":2}`         | `{"items":[{"productId":1,"name":"Book","quantity":2,"price":10000}],"totalPrice":20000}` | 200, 400, 401     | JWT 인증 필요 (ROLE_USER) |
+| /api/cart/{id}   | PUT        | `{"quantity":3}`                       | `{"items":[{"productId":1,"name":"Book","quantity":3,"price":10000}],"totalPrice":30000}` | 200, 400, 404, 401 | JWT 인증 필요 (ROLE_USER) |
+| /api/cart/{id}   | DELETE     | 없음                                 | 없음                                                                  | 204, 404, 401     | JWT 인증 필요 (ROLE_USER) |
 
-```json
-{
-  "token": "eyJhbGci..."
-}
-```
+## 주문
 
----
-
-## 🛒 상품 (Product)
-
-### GET /api/products
-
-* 상품 목록 조회
-
-### GET /api/products/{id}
-
-* 상품 상세 조회
-
----
-
-## 🧺 장바구니 (Cart)
-
-### POST /api/cart
-
-* 장바구니에 상품 추가
-
-```json
-{
-  "productId": 1,
-  "quantity": 2
-}
-```
-
-### DELETE /api/cart/{id}
-
-* 장바구니 항목 삭제
-
-### GET /api/cart
-
-* 내 장바구니 조회
-
----
-
-## 📦 주문 (Order)
-
-### POST /api/orders
-
-* 주문 생성
-
-```json
-{
-  "cartItems": [
-    {
-      "productId": 1,
-      "quantity": 2
-    },
-    {
-      "productId": 3,
-      "quantity": 1
-    }
-  ]
-}
-```
-
-### GET /api/orders
-
-* 내 주문 목록 조회
-
-### GET /api/orders/{id}
-
-* 주문 상세 조회
-
----
-
-## 💳 결제 (Payment)
-
-### POST /api/payments
-
-* 결제 요청
-
-```json
-{
-  "orderId": 1,
-  "paymentMethod": "CARD"
-}
-```
-
-* 응답
-
-```json
-{
-  "status": "SUCCESS",
-  "transactionId": "abc123xyz"
-}
-```
-
----
-
-## 🛠 관리자(Admin)
-
-### 상품 관리
-
-* `POST /api/admin/products` 상품 등록
-
-```json
-{
-  "name": "키보드",
-  "price": 45000,
-  "description": "기계식 키보드",
-  "stock": 100
-}
-```
-
-* `PUT /api/admin/products/{id}` 상품 수정
-* `DELETE /api/admin/products/{id}` 상품 삭제
-
-### 주문 관리
-
-* `PUT /api/admin/orders/{id}` 주문 상태 변경
-
-```json
-{
-  "status": "SHIPPED"
-}
-```
-
----
-
-> 🔐 인증이 필요한 API는 `Authorization: Bearer <JWT>` 헤더를 포함해야 합니다.
-> ⚙️ 관리자 API는 관리자 권한을 가진 사용자만 접근할 수 있습니다.
+| 엔드포인트     | HTTP 메서드 | 요청 예시                | 응답 예시                                                                     | 상태 코드           | 인증/권한                 |
+| ------------- | ---------- | ----------------------- | --------------------------------------------------------------------------- | ------------------ | ---------------------- |
+| /api/orders    | GET        | 없음                     | `[{"id":1,"status":"CREATED","totalPrice":20000,"date":"2025-05-28"}]`           | 200, 401          | JWT 인증 필요 (ROLE_USER) |
+| /api/orders/{id} | GET      | 없음                     | `{"id":1,"items":[{"productId":1,"name":"Book","quantity":2,"price":10000}],"status":"CREATED","totalPrice":20000,"date":"2025-05-28"}` | 200, 404, 401     | JWT 인증 필요 (ROLE_USER) |
+| /api/orders    | POST       | `{"address":"123 Road"}`   | `{"id":2,"status":"CREATED","totalPrice":30000}`                                | 201, 400, 401     | JWT 인증 필요 (ROLE_USER) |
+| /api/orders/{id} | PUT      | `{"status":"CANCELLED"}`   | `{"id":1,"status":"CANCELLED","totalPrice":20000,"date":"2025-05-28"}`          | 200, 400, 404, 401 | JWT 인증 필요 (ROLE_USER) |
